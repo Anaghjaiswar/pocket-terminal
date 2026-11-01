@@ -1,84 +1,107 @@
 # PocketTerminal
 
-**PocketTerminal** is a lightweight, single-binary remote terminal engineered in Go for prompting AI coding CLIs (`aider`, `codex`, `claude`, `git`, etc.) running on your main laptop directly from a mobile phone browser—with **zero configuration**.
+[![Go](https://img.shields.io/badge/Go-1.22+-00ADD8?style=flat&logo=go)](https://go.dev/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)](https://github.com/Anaghjaiswar/pocket-terminal)
+
+**PocketTerminal** is a lightweight, zero-dependency remote terminal engineered in Go for prompting AI coding CLIs (`agy`, `aider`, `codex`, `claude`, `gh`, etc.) running on your main laptop directly from a mobile phone browser—with **zero configuration**.
 
 Run one command, scan the terminal ASCII QR code on your phone, and immediately interact with your desktop shell using a mobile-optimized touch keypad and built-in **Web Speech API voice dictation**.
 
+---
+
 ## Key Features
 
-- **Project terminal sessions**: Open multiple terminal tabs in a project folder. Switching tabs, refreshing the browser, or losing the connection preserves the shells and running commands. Reconnecting replays up to 1 MiB of recent output per session. Use **+ Terminal** to create a shell and **×** to terminate it. Up to 32 sessions are retained until explicitly closed or the server stops; sessions do not survive a server restart.
-- **Browse project folders**: Select **Browse ▾** beside Project, choose a laptop drive from the dropdown, navigate folders, and select **Open This Project**. You can also enter a folder path directly. Folder access uses the server's existing authentication and filesystem permissions.
-
-- **Single Self-Contained Binary (`//go:embed`)**: Bundles the mobile web UI (`index.html`, `style.css`, `app.js`) directly inside the compiled Go executable.
-- **Cross-Platform Shell Support**:
-  - **Windows**: Spawns `powershell.exe` (with automatic fallback to `cmd.exe`), merging `stdout`/`stderr` pipes with CRLF normalization and `Ctrl+C` break signaling.
-  - **Linux / macOS / Docker**: Spawns a full pseudo-terminal (`pty`) via `github.com/creack/pty` with live window resize (`TIOCSWINSZ`) support.
-- **Mobile-First Developer UI**:
+- **📱 Mobile-First Developer UI**:
   - Powered by **xterm.js** and **xterm-addon-fit** in a Catppuccin Mocha dark theme.
-  - **Persistent Touch Keypad Bar**: One-tap `[Esc]`, `[Tab]`, `[Ctrl+C]`, `[↑ Up]`, `[↓ Down]`, `[Enter]`, and `[Clear]` buttons.
-  - **Voice-to-Text Dictation**: Floating microphone button powered by `webkitSpeechRecognition` (`SpeechRecognition`) plus a multi-line Prompt Composer drawer so you can speak natural-language prompts directly into AI coding CLIs.
-- **Cryptographic Token Authentication**: Generates a random 16-character hex token on every startup, validates `?token=` via constant-time comparison, and prints a ready-to-scan ASCII QR code in the terminal.
-- **Zero-Config Public HTTPS Tunneling (`--tunnel`)**: Automatically spawns `cloudflared tunnel --url http://localhost:8080` (downloading the minimal `cloudflared` binary on demand if missing) and encodes the public `https://*.trycloudflare.com/?token=...` link into the startup QR code.
+  - **Persistent Touch Keypad**: One-tap `[Esc]`, `[Tab]`, `[Ctrl]`, `[Alt]`, `[Ctrl+C]`, `[Ctrl+D]`, `[📋 Paste]`, and cursor arrows (`←`, `→`, `↑`, `↓`).
+  - **Voice-to-Text Dictation**: Floating microphone powered by the browser Web Speech API plus a multi-line Prompt Composer drawer to dictate complex instructions hands-free directly into AI coding CLIs.
+- **🔄 Instant Shell Switching**:
+  - Switch on the fly between **Git Bash**, **PowerShell**, **Command Prompt (CMD)**, and **WSL** (Windows Subsystem for Linux) without restarting the server.
+- **📑 Multi-Terminal Sessions & Reconnection**:
+  - Open multiple tabs in any project folder.
+  - Refreshing your phone's browser or losing Wi-Fi signal retains the shells and running commands intact.
+  - Reconnecting automatically replays up to 1 MiB of recent scrollback buffer per session.
+- **📂 Remote Project Browser**:
+  - Select **Browse ▾** to explore laptop drives and folders visually from your phone.
+- **🔒 Cryptographic Security**:
+  - Generates a cryptographically random 16-character hex token on every startup, validated via constant-time token comparison.
+  - Renders a ready-to-scan ASCII QR code directly in your laptop terminal.
+- **🌐 Zero-Config Public HTTPS Tunneling (`--tunnel`)**:
+  - Automatically spawns Cloudflare Quick Tunnels (`*.trycloudflare.com`) on demand so you can prompt your laptop while away on 4G/5G mobile data without port forwarding.
+- **📦 Single Self-Contained Binary (`//go:embed`)**:
+  - Compiles the entire frontend (`HTML`, `CSS`, `JS`) directly inside the binary. No Node.js runtime required on the host.
+
+---
+
+## Quickstart
+
+### Prerequisites
+- [Go 1.22+](https://go.dev/dl/) installed.
+
+### 1. Clone the repository
+```bash
+git clone https://github.com/Anaghjaiswar/pocket-terminal.git
+cd pocket-terminal
+```
+
+### 2. Run directly
+```bash
+go run .
+```
+*(Or compile into a single binary: `go build -o pocket-terminal.exe .`)*
+
+### 3. Scan & Connect
+Your laptop will print an ASCII QR code with your LAN IP (e.g. `http://192.168.1.5:8080/?token=...`). Point your phone camera at the screen to open PocketTerminal immediately!
+
+### 4. Remote Access over 4G/5G (Optional)
+To prompt your laptop when you are away from home Wi-Fi:
+```bash
+.\pocket-terminal.exe --tunnel
+```
+PocketTerminal will establish a secure Cloudflare tunnel and generate a public HTTPS URL QR code.
+
+---
 
 ## Project Structure
 
 | Path | Responsibility |
 | :--- | :--- |
-| `go.mod` | Go 1.22 module definition (`github.com/anagh/pocket-terminal`) and core dependencies |
 | `main.go` | CLI flags (`-port`, `-shell`, `-tunnel`, `-token`), ASCII banner, QR code rendering, HTTP server |
 | `internal/auth/token.go` | Cryptographic 16-char hex token generation and constant-time validation middleware |
 | `internal/pty/pty.go` | Cross-platform `Terminal` interface (`Read`, `Write`, `Resize`, `Close`, `Wait`) |
-| `internal/pty/pty_windows.go` | Windows interactive shell execution (`powershell.exe` / `cmd.exe`) with raw stdio piping |
+| `internal/pty/pty_windows.go` | Windows native ConPTY execution (`bash.exe`, `powershell.exe`, `cmd.exe`, `wsl.exe`) |
 | `internal/pty/pty_linux.go` | Linux/Unix PTY implementation powered by `github.com/creack/pty` |
-| `internal/ws/handler.go` | Gorilla WebSocket upgrader, bidirectional PTY stream bridge, and JSON `resize` handler |
+| `internal/ws/handler.go` | WebSocket connection upgrader, bidirectional PTY stream bridge, and JSON resize protocol |
+| `internal/ws/sessions.go` | Decoupled session manager, scrollback history replay buffer, and multi-tab lifecycle |
+| `internal/ws/directories.go` | Filesystem navigation API for the remote project browser |
 | `internal/tunnel/cloudflare.go` | Automatic Cloudflare Quick Tunnel launcher and public URL extractor |
 | `web/embed.go` | `//go:embed static/*` static asset server |
-| `web/static/index.html` | Mobile-first terminal layout, voice dictation button, prompt drawer, and touch keypad |
-| `web/static/app.js` | WebSocket client, auto-reconnect, `FitAddon` resize sync, and `webkitSpeechRecognition` |
-| `web/static/style.css` | Catppuccin Mocha dark theme and mobile viewport (`100dvh`) styling |
-| `Dockerfile` | Multi-stage Alpine container build for Linux/Docker deployments |
+| `web/static/` | Mobile-first terminal UI (`index.html`, `style.css`, `app.js`) |
 
-## Quickstart (Windows `D:\phone-laptop-config`)
-
-1. Open PowerShell in `D:\phone-laptop-config` and fetch dependencies:
-
-```powershell
-go mod tidy
-```
-
-2. Build the single Windows executable:
-
-```powershell
-go build -o pocket-terminal.exe .
-```
-
-3. Run PocketTerminal on your laptop:
-
-```powershell
-.\pocket-terminal.exe
-```
-
-4. For instant access outside your home Wi-Fi (over 4G/5G), enable the Cloudflare Quick Tunnel:
-
-```powershell
-.\pocket-terminal.exe --tunnel
-```
+---
 
 ## CLI Flags & Environment Variables
 
 | Flag | Environment Variable | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `-port` | — | `8080` | Local TCP port for the HTTP & WebSocket server |
-| `-project` | — | Current folder | Default working directory for new terminal sessions; the Project field can open other folders on the laptop |
-| `-shell` | `SHELL` | `powershell.exe` (Win) / `/bin/bash` (Linux) | Interactive shell binary to launch |
+| `-port` | — | `8080` | Local TCP port for HTTP & WebSocket server |
+| `-project` | — | Current folder | Default working directory for new terminal sessions |
+| `-shell` | `SHELL` | `powershell.exe` (Win) / `/bin/bash` (Linux) | Initial interactive shell binary |
 | `-tunnel` | `ENABLE_TUNNEL=true` | `false` | Spawn a zero-config Cloudflare Quick Tunnel (`*.trycloudflare.com`) |
 | `-token` | `POCKET_TERMINAL_TOKEN` | *(auto-generated)* | Custom session token (defaults to 16-char random hex) |
 
-## Docker Usage
+---
 
-Build and run PocketTerminal inside a container:
+## Docker Usage
 
 ```bash
 docker build -t pocket-terminal .
-docker run --rm -it -p 8080:8080 -e ENABLE_TUNNEL=true pocket-terminal
+docker run --rm -it -p 8080:8080 pocket-terminal
 ```
+
+---
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).

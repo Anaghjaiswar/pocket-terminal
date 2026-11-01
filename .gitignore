@@ -1,0 +1,25 @@
+# Binaries and executables
+*.exe
+*.exe~
+pocket-terminal
+*.dll
+*.so
+*.dylib
+
+# Test and coverage artifacts
+*.out
+*.test
+
+# OS & Editor files
+.DS_Store
+Thumbs.db
+*~
+*.swp
+*.swo
+.idea/
+.vscode/
+
+# Local logs & environment
+*.log
+.env
+.env.local
