@@ -28,7 +28,7 @@ func TestWindowsShellStartsInProject(t *testing.T) {
 				}
 			}
 			h := NewHandler("test", "powershell.exe")
-			h.Dir = t.TempDir()
+			h.Dir = canonicalTempDir(t)
 			defer h.Close()
 			w := sessionRequest(t, h, "POST", "", `{"shell":"`+shell+`"}`, 201)
 			var info sessionInfo

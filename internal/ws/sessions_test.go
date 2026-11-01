@@ -49,7 +49,7 @@ func sessionRequest(t *testing.T, h *Handler, method, query, body string, status
 
 func TestSessionSurvivesDisconnectAndReplaysOutput(t *testing.T) {
 	h := NewHandler("test", "fake")
-	h.Dir = t.TempDir()
+	h.Dir = canonicalTempDir(t)
 	defer h.Close()
 	fake := newFakeTerminal()
 	starts := 0
@@ -115,7 +115,7 @@ func TestSessionSurvivesDisconnectAndReplaysOutput(t *testing.T) {
 
 func TestProjectsAndAuthentication(t *testing.T) {
 	h := NewHandler("test", "fake")
-	h.Dir = t.TempDir()
+	h.Dir = canonicalTempDir(t)
 	defer h.Close()
 	h.start = func(pty.Options) (pty.Terminal, error) { return newFakeTerminal(), nil }
 	unauthorized := httptest.NewRecorder()
@@ -124,7 +124,7 @@ func TestProjectsAndAuthentication(t *testing.T) {
 		t.Fatal("missing authentication accepted")
 	}
 	sessionRequest(t, h, "POST", "", `{}`, 201)
-	other := t.TempDir()
+	other := canonicalTempDir(t)
 	body, _ := json.Marshal(map[string]string{"project": other, "shell": "fake"})
 	sessionRequest(t, h, "POST", "", string(body), 201)
 	for _, dir := range []string{h.Dir, other} {
@@ -158,7 +158,7 @@ func TestHistoryIsBoundedAndSlowClientDetaches(t *testing.T) {
 
 func TestSlowShellStartupDoesNotBlockSessionListing(t *testing.T) {
 	h := NewHandler("test", "fake")
-	h.Dir = t.TempDir()
+	h.Dir = canonicalTempDir(t)
 	defer h.Close()
 	started := make(chan struct{})
 	release := make(chan struct{})

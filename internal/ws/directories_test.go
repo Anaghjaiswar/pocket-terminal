@@ -12,7 +12,7 @@ import (
 
 func TestDirectoryPickerListsFoldersAndNavigates(t *testing.T) {
 	h := NewHandler("test", "fake")
-	h.Dir = t.TempDir()
+	h.Dir = canonicalTempDir(t)
 	for _, name := range []string{"z-last", "Alpha", "folder with spaces"} {
 		if err := os.Mkdir(filepath.Join(h.Dir, name), 0700); err != nil {
 			t.Fatal(err)
@@ -46,7 +46,7 @@ func TestDirectoryPickerListsFoldersAndNavigates(t *testing.T) {
 		t.Fatalf("wrong child listing: %+v", child)
 	}
 	// Another drive/folder need not be below the initial project directory.
-	other := t.TempDir()
+	other := canonicalTempDir(t)
 	if get(other).Path != other {
 		t.Fatal("cannot browse outside initial project")
 	}
@@ -54,7 +54,7 @@ func TestDirectoryPickerListsFoldersAndNavigates(t *testing.T) {
 
 func TestDirectoryPickerRejectsInvalidRequests(t *testing.T) {
 	h := NewHandler("test", "fake")
-	h.Dir = t.TempDir()
+	h.Dir = canonicalTempDir(t)
 	for _, tc := range []struct {
 		method, query string
 		status        int
