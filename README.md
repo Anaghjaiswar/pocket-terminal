@@ -71,7 +71,7 @@ PocketTerminal will establish a secure Cloudflare tunnel and generate a public H
 | `internal/auth/token.go` | Cryptographic 16-char hex token generation and constant-time validation middleware |
 | `internal/pty/pty.go` | Cross-platform `Terminal` interface (`Read`, `Write`, `Resize`, `Close`, `Wait`) |
 | `internal/pty/pty_windows.go` | Windows native ConPTY execution (`bash.exe`, `powershell.exe`, `cmd.exe`, `wsl.exe`) |
-| `internal/pty/pty_linux.go` | Linux/Unix PTY implementation powered by `github.com/creack/pty` |
+| `internal/pty/pty_unix.go` | Linux, macOS, and BSD PTY implementation powered by `github.com/creack/pty` |
 | `internal/ws/handler.go` | WebSocket connection upgrader, bidirectional PTY stream bridge, and JSON resize protocol |
 | `internal/ws/sessions.go` | Decoupled session manager, scrollback history replay buffer, and multi-tab lifecycle |
 | `internal/ws/directories.go` | Filesystem navigation API for the remote project browser |
