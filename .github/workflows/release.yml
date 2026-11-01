@@ -1,0 +1,100 @@
+name: Release Binaries
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    name: Build & Package
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - os: windows
+            arch: amd64
+            artifact_name: pocket-terminal-windows-amd64.zip
+            binary_name: pocket-terminal.exe
+          - os: linux
+            arch: amd64
+            artifact_name: pocket-terminal-linux-amd64.tar.gz
+            binary_name: pocket-terminal
+          - os: darwin
+            arch: amd64
+            artifact_name: pocket-terminal-darwin-amd64.tar.gz
+            binary_name: pocket-terminal
+          - os: darwin
+            arch: arm64
+            artifact_name: pocket-terminal-darwin-arm64.tar.gz
+            binary_name: pocket-terminal
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+          check-latest: true
+
+      - name: Build binary
+        env:
+          GOOS: ${{ matrix.os }}
+          GOARCH: ${{ matrix.arch }}
+          CGO_ENABLED: 0
+        run: |
+          mkdir -p dist
+          go build -ldflags="-s -w" -o dist/${{ matrix.binary_name }} .
+
+      - name: Package archive (Windows)
+        if: matrix.os == 'windows'
+        run: |
+          cd dist
+          zip -9 ../${{ matrix.artifact_name }} ${{ matrix.binary_name }}
+          cd ..
+
+      - name: Package archive (Unix)
+        if: matrix.os != 'windows'
+        run: |
+          cd dist
+          tar -czvf ../${{ matrix.artifact_name }} ${{ matrix.binary_name }}
+          cd ..
+
+      - name: Upload artifact for release
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: ${{ matrix.artifact_name }}
+
+  publish-release:
+    name: Publish GitHub Release
+    needs: build-and-release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download all built artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          merge-multiple: true
+
+      - name: Generate Checksums
+        run: |
+          cd release-assets
+          sha256sum * > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            release-assets/*
+          generate_release_notes: true

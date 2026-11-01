@@ -34,7 +34,39 @@ Run one command, scan the terminal ASCII QR code on your phone, and immediately 
 
 ---
 
-## Quickstart
+## ⚡ Installation
+
+### Option A: One-Line Installer (Recommended)
+
+**Windows (PowerShell)**:
+```powershell
+irm https://raw.githubusercontent.com/Anaghjaiswar/pocket-terminal/main/install.ps1 | iex
+```
+
+**macOS & Linux**:
+```bash
+curl -fsSL https://raw.githubusercontent.com/Anaghjaiswar/pocket-terminal/main/install.sh | sh
+```
+
+---
+
+### Option B: Pre-Compiled Binary (No Go Needed)
+Download the standalone executable directly from the [**GitHub Releases**](https://github.com/Anaghjaiswar/pocket-terminal/releases) page:
+- 🪟 **Windows**: `pocket-terminal-windows-amd64.zip`
+- 🐧 **Linux**: `pocket-terminal-linux-amd64.tar.gz`
+- 🍎 **macOS (Apple Silicon)**: `pocket-terminal-darwin-arm64.tar.gz`
+- 🍏 **macOS (Intel)**: `pocket-terminal-darwin-amd64.tar.gz`
+
+---
+
+### Option C: With Go (`go install`)
+```bash
+go install github.com/Anaghjaiswar/pocket-terminal@latest
+```
+
+---
+
+## Quickstart (From Source)
 
 ### Prerequisites
 - [Go 1.22+](https://go.dev/dl/) installed.
