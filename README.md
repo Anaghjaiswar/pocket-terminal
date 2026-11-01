@@ -38,6 +38,7 @@ Run one command, scan the terminal ASCII QR code on your phone, and immediately 
 
 ### Prerequisites
 - [Go 1.22+](https://go.dev/dl/) installed.
+- On current macOS, use Go 1.24 or newer so compiled binaries include the required Mach-O UUID. CI uses the latest stable Go release.
 
 ### 1. Clone the repository
 ```bash
